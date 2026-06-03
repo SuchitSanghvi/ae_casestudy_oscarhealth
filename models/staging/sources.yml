@@ -1,0 +1,50 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: raw
+    description: "Raw CSV data loaded into DuckDB for the Oscar Health case study"
+    tables:
+      - name: claim_lines
+        description: "Individual claim line items representing medical services billed"
+        columns:
+          - name: record_id
+            description: "Primary key for each claim line"
+          - name: member_id
+            description: "Member identifier"
+          - name: date_svc
+            description: "Date of service"
+          - name: diag1
+            description: "ICD-10 diagnosis code"
+
+      - name: ccs
+        description: "Clinical Classification Software (CCS) reference mapping ICD-10 codes to clinical categories"
+        columns:
+          - name: diag
+            description: "ICD-10 diagnosis code (no dots)"
+          - name: diag_desc
+            description: "Diagnosis description"
+          - name: ccs_1_desc
+            description: "CCS level 1 clinical category"
+          - name: ccs_2_desc
+            description: "CCS level 2 clinical category"
+          - name: ccs_3_desc
+            description: "CCS level 3 clinical category"
+
+      - name: prescription_drugs
+        description: "Prescription drug records associated with members"
+        columns:
+          - name: record_id
+            description: "Primary key for each prescription record"
+          - name: member_id
+            description: "Member identifier"
+          - name: date_svc
+            description: "Date of service"
+          - name: ndc
+            description: "National Drug Code"
+          - name: drug_category
+            description: "Drug category"
+          - name: drug_group
+            description: "Drug group"
+          - name: drug_class
+            description: "Drug class"

@@ -1,0 +1,86 @@
+version: 2
+
+models:
+  - name: dim_member
+    columns:
+      - name: member_id
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_date
+    columns:
+      - name: date_of_service
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_diagnosis
+    columns:
+      - name: diagnosis_code
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_drug
+    columns:
+      - name: drug_code
+        tests:
+          - unique
+          - not_null
+
+  - name: fct_diagnosis
+    columns:
+      - name: record_id
+        tests:
+          - unique
+          - not_null
+      - name: member_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_member')
+                field: member_id
+      - name: date_of_service
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_of_service
+      - name: diagnosis_code
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_diagnosis')
+                field: diagnosis_code
+
+  - name: fct_prescription_filled
+    columns:
+      - name: record_id
+        tests:
+          - unique
+          - not_null
+      - name: member_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_member')
+                field: member_id
+      - name: date_of_service
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_of_service
+      - name: drug_code
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_drug')
+                field: drug_code

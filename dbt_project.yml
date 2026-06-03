@@ -1,0 +1,30 @@
+name: 'ae_casestudy_oscarhealth'
+version: '1.0.0'
+config-version: 2
+
+profile: 'ae_casestudy_oscarhealth'
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+on-run-start:
+  - "CREATE SCHEMA IF NOT EXISTS raw"
+  - "CREATE OR REPLACE VIEW raw.claim_lines AS SELECT * FROM read_csv_auto('{{ env_var(\"RAW_DATA_PATH\", \"raw\") }}/claim_lines.csv', header=true, quote='\"')"
+  - "CREATE OR REPLACE VIEW raw.ccs AS SELECT * FROM read_csv_auto('{{ env_var(\"RAW_DATA_PATH\", \"raw\") }}/ccs.csv', header=true)"
+  - "CREATE OR REPLACE VIEW raw.prescription_drugs AS SELECT * FROM read_csv_auto('{{ env_var(\"RAW_DATA_PATH\", \"raw\") }}/prescription_drugs.csv', header=true, quote='\"')"
+
+models:
+  ae_casestudy_oscarhealth:
+    staging:
+      +schema: staging
+      +materialized: view
+    marts:
+      +schema: marts
+      +materialized: table

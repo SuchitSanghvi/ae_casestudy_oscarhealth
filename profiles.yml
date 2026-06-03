@@ -1,0 +1,7 @@
+ae_casestudy_oscarhealth:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('DUCKDB_PATH', 'ae_casestudy.duckdb') }}"
+      threads: 4
