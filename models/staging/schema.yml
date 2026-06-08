@@ -1,0 +1,58 @@
+version: 2
+
+unit_tests:
+
+  - name: test_stg_claim_lines_removes_dots_from_diagnosis_code
+    description: >
+      The REPLACE(REPLACE(diag1,'.,',''),'.','') expression must strip dots and
+      the combined '.,' sequence from raw ICD-10 codes before storing them.
+    model: stg_claim_lines
+    given:
+      - input: source('raw', 'claim_lines')
+        rows:
+          - {record_id: 1, member_id: 'M001', date_svc: '2023-01-15', diag1: 'A00.1'}
+          - {record_id: 2, member_id: 'M002', date_svc: '2023-01-15', diag1: 'B12.,34'}
+          - {record_id: 3, member_id: 'M003', date_svc: '2023-01-15', diag1: 'Z99'}
+    expect:
+      rows:
+        - {record_id: 1, diagnosis_code: 'A001'}
+        - {record_id: 2, diagnosis_code: 'B1234'}
+        - {record_id: 3, diagnosis_code: 'Z99'}
+
+  - name: test_stg_claim_lines_flags_invalid_diagnosis_codes
+    description: >
+      Known sentinel values (999.99, 000, KHD.X) and nulls must be flagged with
+      invalid_diagnosis_code = 1; all other codes must return 0.
+    model: stg_claim_lines
+    given:
+      - input: source('raw', 'claim_lines')
+        rows:
+          - {record_id: 1, member_id: 'M001', date_svc: '2023-01-15', diag1: '999.99'}
+          - {record_id: 2, member_id: 'M002', date_svc: '2023-01-15', diag1: '000'}
+          - {record_id: 3, member_id: 'M003', date_svc: '2023-01-15', diag1: 'KHD.X'}
+          - {record_id: 4, member_id: 'M004', date_svc: '2023-01-15', diag1: null}
+          - {record_id: 5, member_id: 'M005', date_svc: '2023-01-15', diag1: 'A001'}
+    expect:
+      rows:
+        - {record_id: 1, invalid_diagnosis_code: 1}
+        - {record_id: 2, invalid_diagnosis_code: 1}
+        - {record_id: 3, invalid_diagnosis_code: 1}
+        - {record_id: 4, invalid_diagnosis_code: 1}
+        - {record_id: 5, invalid_diagnosis_code: 0}
+
+  - name: test_stg_claim_lines_flags_invalid_dates
+    description: >
+      Null dates and dates before 1900-01-01 must be flagged with
+      invalid_date_of_service = 1; valid dates must return 0.
+    model: stg_claim_lines
+    given:
+      - input: source('raw', 'claim_lines')
+        rows:
+          - {record_id: 1, member_id: 'M001', date_svc: null,         diag1: 'A001'}
+          - {record_id: 2, member_id: 'M002', date_svc: '1850-06-01', diag1: 'A001'}
+          - {record_id: 3, member_id: 'M003', date_svc: '2023-01-15', diag1: 'A001'}
+    expect:
+      rows:
+        - {record_id: 1, invalid_date_of_service: 1}
+        - {record_id: 2, invalid_date_of_service: 1}
+        - {record_id: 3, invalid_date_of_service: 0}

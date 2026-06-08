@@ -1,5 +1,24 @@
 version: 2
 
+unit_tests:
+
+  - name: test_dim_drug_deduplicates_by_drug_code
+    description: >
+      When the same drug_code appears multiple times in stg_prescription_drugs,
+      QUALIFY ROW_NUMBER() must keep exactly one row per drug_code — the one that
+      sorts first by (drug_category, drug_group, drug_class).
+    model: dim_drug
+    given:
+      - input: ref('stg_prescription_drugs')
+        rows:
+          - {drug_code: 'NDC001', drug_category: 'Cat B', drug_group: 'Grp 2', drug_class: 'Cls 2'}
+          - {drug_code: 'NDC001', drug_category: 'Cat A', drug_group: 'Grp 1', drug_class: 'Cls 1'}
+          - {drug_code: 'NDC002', drug_category: 'Cat C', drug_group: 'Grp 3', drug_class: 'Cls 3'}
+    expect:
+      rows:
+        - {drug_code: 'NDC001', drug_category: 'Cat A', drug_group: 'Grp 1', drug_class: 'Cls 1'}
+        - {drug_code: 'NDC002', drug_category: 'Cat C', drug_group: 'Grp 3', drug_class: 'Cls 3'}
+
 models:
   - name: dim_member
     columns:
